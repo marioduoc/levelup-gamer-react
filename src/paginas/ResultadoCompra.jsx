@@ -2,10 +2,10 @@ import { Container, Alert, Table, Button } from 'react-bootstrap'
 import { Link, Navigate } from 'react-router'
 import { formatearPrecio } from '../utils/carrito.js'
 
-// Una sola página para los dos resultados: compra exitosa y pago rechazado.
-// La prop "exito" decide qué versión se muestra.
+// misma página para los dos casos: compra ok y pago rechazado.
+// la prop exito decide cuál se muestra
 export default function ResultadoCompra({ pedido, exito }) {
-  // Si alguien entra directo a la URL sin haber comprado, lo mandamos al inicio.
+  // si entran directo a la url sin haber comprado, de vuelta al inicio
   if (!pedido) {
     return <Navigate to="/" replace />
   }

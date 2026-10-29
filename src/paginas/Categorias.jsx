@@ -2,7 +2,7 @@ import { Container, Row, Col, Card } from 'react-bootstrap'
 import { Link } from 'react-router'
 import { obtenerProductos, obtenerCategorias } from '../datos/productos.js'
 
-// Vista que separa los productos por categoría.
+// muestra los productos agrupados por categoría
 export default function Categorias() {
   const productos = obtenerProductos()
   const categorias = obtenerCategorias()

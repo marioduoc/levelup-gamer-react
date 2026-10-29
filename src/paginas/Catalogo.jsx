@@ -3,8 +3,8 @@ import { useSearchParams } from 'react-router'
 import GrillaProductos from '../componentes/GrillaProductos.jsx'
 import { obtenerProductos, obtenerCategorias } from '../datos/productos.js'
 
-// Catálogo completo con buscador y filtro por categoría.
-// El filtro vive en la URL (?buscar=...&categoria=...) gracias a useSearchParams.
+// catálogo con buscador y filtro por categoría.
+// guardo el filtro en la url (?buscar=...&categoria=...) así se puede compartir el link
 export default function Catalogo({ onAgregar }) {
   const [parametros, setParametros] = useSearchParams()
   const textoBuscado = parametros.get('buscar') ?? ''
@@ -16,7 +16,7 @@ export default function Catalogo({ onAgregar }) {
   function actualizar(clave, valor) {
     const copia = new URLSearchParams(parametros)
     if (valor) copia.set(clave, valor)
-    else copia.delete(clave) // sin valor, borramos la clave
+    else copia.delete(clave) // si no hay valor saco la clave de la url
     setParametros(copia)
   }
 

@@ -1,4 +1,4 @@
-// Fuente de datos simulada para los usuarios registrados (localStorage).
+// usuarios registrados, guardados en localStorage
 
 const CLAVE_USUARIOS = 'levelup_usuarios'
 
@@ -15,7 +15,7 @@ function guardarUsuarios(usuarios) {
   localStorage.setItem(CLAVE_USUARIOS, JSON.stringify(usuarios))
 }
 
-// CREATE: registra un usuario nuevo. Devuelve { ok, error }.
+// registra un usuario nuevo, no deja repetir run ni correo. devuelve { ok, error }
 export function registrarUsuario(usuario) {
   const usuarios = obtenerUsuarios()
 
@@ -31,7 +31,7 @@ export function registrarUsuario(usuario) {
   return { ok: true }
 }
 
-// Busca un usuario por correo y contraseña. Devuelve el usuario o null.
+// busca por correo + contraseña, devuelve el usuario o null
 export function iniciarSesion(correo, password) {
   const usuario = obtenerUsuarios().find(
     (u) => u.correo.toLowerCase() === correo.toLowerCase() && u.password === password,
@@ -39,7 +39,6 @@ export function iniciarSesion(correo, password) {
   return usuario ?? null
 }
 
-// DELETE: elimina un usuario por RUN.
 export function eliminarUsuario(run) {
   guardarUsuarios(obtenerUsuarios().filter((u) => u.run !== run))
 }

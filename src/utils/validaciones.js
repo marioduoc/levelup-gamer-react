@@ -1,5 +1,5 @@
-// Reglas de validación de los formularios (las mismas de la Evaluación 1,
-// ahora como funciones que devuelven un objeto con los errores encontrados).
+// validaciones de los formularios, reusadas de la ep1.
+// cada validar* devuelve un objeto { campo: 'error' }; si queda vacío está todo ok
 
 const DOMINIOS_CORREO_VALIDOS = ['duoc.cl', 'profesor.duoc.cl', 'gmail.com']
 
@@ -10,7 +10,7 @@ export function validarCorreo(correo) {
   return DOMINIOS_CORREO_VALIDOS.includes(dominio) && correo.length <= 100
 }
 
-// RUN chileno sin puntos ni guión, ej: 19011022K. Verifica el dígito verificador.
+// RUN sin puntos ni guión (ej 123456785). calcula el dígito verificador con módulo 11
 export function validarRun(run) {
   const limpio = run.trim().toUpperCase()
   if (!/^[0-9]{6,8}[0-9K]$/.test(limpio)) return false
@@ -32,8 +32,8 @@ export function validarRun(run) {
 
 export function calcularEdad(fechaNacimiento) {
   const hoy = new Date()
-  // Se agrega la hora para que la fecha se interprete en hora local y no en UTC
-  // (sin esto, en Chile la fecha quedaba corrida un día hacia atrás).
+  // le pego la hora para que se lea en hora local y no en UTC,
+  // si no en Chile la fecha quedaba un día atrás
   const nacimiento = new Date(fechaNacimiento + 'T00:00:00')
   let edad = hoy.getFullYear() - nacimiento.getFullYear()
   const mes = hoy.getMonth() - nacimiento.getMonth()
@@ -43,7 +43,6 @@ export function calcularEdad(fechaNacimiento) {
   return edad
 }
 
-// Devuelve un objeto { campo: 'mensaje' }. Si está vacío, el formulario es válido.
 export function validarRegistro(datos) {
   const errores = {}
 

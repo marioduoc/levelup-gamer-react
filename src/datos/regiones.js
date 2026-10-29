@@ -1,4 +1,5 @@
-// Regiones y comunas de Chile para los selectores dependientes (registro y checkout).
+// regiones y comunas para los selectores de registro y checkout
+// (al elegir región se cargan sus comunas)
 
 export const regiones = [
   { nombre: 'Arica y Parinacota', comunas: ['Arica', 'Camarones', 'Putre', 'General Lagos'] },
@@ -22,7 +23,6 @@ export const regiones = [
   { nombre: 'Magallanes y de la Antártica Chilena', comunas: ['Punta Arenas', 'Puerto Natales', 'Porvenir'] },
 ]
 
-// Devuelve las comunas de una región (o una lista vacía si no existe).
 export function comunasDe(nombreRegion) {
   const region = regiones.find((r) => r.nombre === nombreRegion)
   return region ? region.comunas : []

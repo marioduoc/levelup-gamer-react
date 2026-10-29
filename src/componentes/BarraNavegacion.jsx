@@ -1,8 +1,7 @@
 import { Navbar, Nav, Container, Button, Badge } from 'react-bootstrap'
 import { NavLink, Link } from 'react-router'
 
-// Barra superior. Recibe por props cuántos items hay en el carrito,
-// la sesión actual y la función para cerrar sesión.
+// barra de arriba. recibe todo por props (items del carrito, sesión y cerrar sesión)
 export default function BarraNavegacion({ cantidadCarrito, sesion, onCerrarSesion }) {
   return (
     <Navbar expand="lg" sticky="top" className="shadow-sm">
@@ -11,7 +10,7 @@ export default function BarraNavegacion({ cantidadCarrito, sesion, onCerrarSesio
           LEVEL<span>UP</span> GAMER
         </Navbar.Brand>
 
-        {/* En pantallas chicas el menú se esconde detrás de este botón */}
+        {/* en celular el menú se mete detrás de este botón */}
         <Navbar.Toggle aria-controls="menu-principal" />
 
         <Navbar.Collapse id="menu-principal">

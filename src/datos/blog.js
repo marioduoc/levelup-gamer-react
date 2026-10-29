@@ -1,4 +1,4 @@
-// Artículos del blog (datos fijos de ejemplo).
+// artículos del blog, datos fijos de ejemplo
 
 export const articulosBlog = [
   {
@@ -36,7 +36,7 @@ export function buscarArticulo(id) {
   return articulosBlog.find((a) => a.id === id)
 }
 
-// Convierte "2026-08-12" en "12 de agosto de 2026".
+// "2026-08-12" -> "12 de agosto de 2026"
 export function formatearFecha(fechaISO) {
   const fecha = new Date(fechaISO + 'T00:00:00')
   return fecha.toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })

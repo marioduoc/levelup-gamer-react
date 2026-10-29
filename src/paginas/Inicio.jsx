@@ -4,7 +4,7 @@ import GrillaProductos from '../componentes/GrillaProductos.jsx'
 import { obtenerProductos } from '../datos/productos.js'
 
 export default function Inicio({ onAgregar }) {
-  // Mostramos solo los primeros 4 productos como destacados
+  // solo los primeros 4 como destacados
   const destacados = obtenerProductos().slice(0, 4)
 
   return (

@@ -3,8 +3,7 @@ import { Link } from 'react-router'
 import { formatearPrecio } from '../utils/carrito.js'
 import { precioFinal } from '../datos/productos.js'
 
-// Tarjeta de un producto del catálogo.
-// Props: producto (objeto) y onAgregar (función que recibe el producto).
+// tarjeta de un producto en el catálogo
 export default function TarjetaProducto({ producto, onAgregar }) {
   const sinStock = producto.stock <= 0
   const stockCritico = !sinStock && producto.stock <= producto.stockCritico
@@ -23,7 +22,7 @@ export default function TarjetaProducto({ producto, onAgregar }) {
           </Link>
         </Card.Title>
 
-        {/* Renderizado condicional: solo una de estas etiquetas aparece */}
+        {/* solo aparece una de las dos etiquetas según el stock */}
         {sinStock && <Badge bg="secondary" className="align-self-start mb-2">Agotado</Badge>}
         {stockCritico && <Badge bg="warning" text="dark" className="align-self-start mb-2">¡Últimas unidades!</Badge>}
         {tieneOferta && <Badge bg="danger" className="align-self-start mb-2">-{producto.oferta}%</Badge>}

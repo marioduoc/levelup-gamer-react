@@ -1,7 +1,7 @@
 import { Container, Button } from 'react-bootstrap'
 import { Link, useLocation } from 'react-router'
 
-// Ruta comodín (*). Muestra la dirección que el usuario intentó abrir.
+// página 404 (ruta *). muestra la url que se intentó abrir
 export default function NoEncontrada() {
   const ubicacion = useLocation()
 

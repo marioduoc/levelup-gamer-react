@@ -2,7 +2,7 @@ import { Outlet } from 'react-router'
 import BarraNavegacion from './BarraNavegacion.jsx'
 import PiePagina from './PiePagina.jsx'
 
-// Marco del sitio: barra arriba, pie abajo y en el medio (Outlet) la página que toque.
+// estructura fija: barra arriba, pie abajo y el Outlet (la página) al medio
 export default function Layout({ cantidadCarrito, sesion, onCerrarSesion }) {
   return (
     <>

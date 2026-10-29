@@ -1,7 +1,6 @@
 import { Form } from 'react-bootstrap'
 
-// Campo de formulario genérico con su etiqueta y mensaje de error.
-// Si "error" viene vacío, no se muestra nada en rojo.
+// campo de formulario reutilizable: label + lo que le pase dentro + el error en rojo
 export default function CampoFormulario({ id, label, error, children }) {
   return (
     <Form.Group className="mb-3" controlId={id}>

@@ -2,7 +2,7 @@ import { Container } from 'react-bootstrap'
 import GrillaProductos from '../componentes/GrillaProductos.jsx'
 import { obtenerOfertas } from '../datos/productos.js'
 
-// Vista con todos los productos que tienen descuento.
+// solo los productos con descuento
 export default function Ofertas({ onAgregar }) {
   const ofertas = obtenerOfertas()
 

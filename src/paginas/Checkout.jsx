@@ -8,11 +8,11 @@ import { validarCheckout } from '../utils/validaciones.js'
 import { calcularTotal, formatearPrecio } from '../utils/carrito.js'
 import { procesarPago } from '../utils/pedidos.js'
 
-// Paso de pago: datos del cliente + dirección de entrega + tarjeta.
+// paso de pago: datos del cliente, dirección y tarjeta
 export default function Checkout({ carrito, sesion, onPagoRealizado }) {
   const navegar = useNavigate()
 
-  // Si el usuario inició sesión, sus datos se rellenan solos.
+  // si hay sesión los datos vienen rellenados
   const [datos, setDatos] = useState({
     nombre: sesion?.nombre ?? '',
     apellidos: sesion?.apellidos ?? '',
@@ -27,9 +27,9 @@ export default function Checkout({ carrito, sesion, onPagoRealizado }) {
   const [errores, setErrores] = useState({})
   const [pagoEnviado, setPagoEnviado] = useState(false)
 
-  // Ruta protegida: sin productos no tiene sentido estar aquí.
-  // Excepción: si acabamos de pagar, el carrito se vacía justo antes de salir
-  // de esta página y no queremos que nos devuelva al carrito.
+  // ruta protegida: si el carrito está vacío no corresponde estar acá.
+  // ojo: al pagar el carrito queda vacío justo antes de salir, por eso la bandera
+  // pagoEnviado, si no me rebotaba al carrito en vez de ir a la pantalla de resultado
   if (carrito.length === 0 && !pagoEnviado) {
     return <Navigate to="/carrito" replace />
   }
@@ -38,7 +38,7 @@ export default function Checkout({ carrito, sesion, onPagoRealizado }) {
     const { name, value } = e.target
     setDatos((anterior) => {
       const nuevo = { ...anterior, [name]: value }
-      if (name === 'region') nuevo.comuna = '' // al cambiar región se limpia la comuna
+      if (name === 'region') nuevo.comuna = '' // si cambio la región, limpio la comuna
       return nuevo
     })
   }

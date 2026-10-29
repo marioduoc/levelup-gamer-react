@@ -39,34 +39,31 @@ function leerSesionGuardada() {
   }
 }
 
-// App es el componente padre de todas las páginas.
-// Aquí vive el estado que varias pantallas necesitan: el carrito y la sesión.
+// componente padre. acá vive el estado que ocupan varias páginas: el carrito y la sesión
 export default function App() {
-  // Pasamos una FUNCIÓN a useState: así localStorage se lee solo la primera vez.
+  // le paso una función a useState para que localStorage se lea solo la primera vez
   const [carrito, setCarrito] = useState(leerCarritoGuardado)
   const [sesion, setSesion] = useState(leerSesionGuardada)
   const [ultimoPedido, setUltimoPedido] = useState(null)
-  const [aviso, setAviso] = useState('') // mensaje corto tipo "Producto agregado"
+  const [aviso, setAviso] = useState('') // mensajito tipo "producto agregado"
 
-  // Cada vez que cambia el carrito, lo guardamos en el navegador.
+  // guardo el carrito en el navegador cada vez que cambia
   useEffect(() => {
     localStorage.setItem(CLAVE_CARRITO, JSON.stringify(carrito))
   }, [carrito])
 
-  // Lo mismo con la sesión.
   useEffect(() => {
     if (sesion) localStorage.setItem(CLAVE_SESION, JSON.stringify(sesion))
     else localStorage.removeItem(CLAVE_SESION)
   }, [sesion])
 
-  // El aviso desaparece solo después de 2,5 segundos.
+  // el aviso se borra solo a los 2,5 seg
   useEffect(() => {
     if (!aviso) return
     const temporizador = setTimeout(() => setAviso(''), 2500)
     return () => clearTimeout(temporizador)
   }, [aviso])
 
-  // ---------- Acciones del carrito ----------
   function manejarAgregar(producto) {
     const nuevoCarrito = agregarProducto(carrito, producto)
     if (nuevoCarrito === carrito) {
@@ -89,7 +86,6 @@ export default function App() {
     setCarrito([])
   }
 
-  // ---------- Sesión ----------
   function manejarIniciarSesion(usuario) {
     setSesion(usuario)
     setAviso(`¡Bienvenido, ${usuario.nombre}!`)
@@ -99,7 +95,6 @@ export default function App() {
     setSesion(null)
   }
 
-  // ---------- Pago ----------
   function manejarPagoRealizado(pedido) {
     setUltimoPedido(pedido)
     if (pedido.estado === 'aprobado') setCarrito([])

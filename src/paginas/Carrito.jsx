@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import ResumenCarrito from '../componentes/ResumenCarrito.jsx'
 import { formatearPrecio } from '../utils/carrito.js'
 
-// Página del carrito. Todo el estado vive en App y llega por props.
+// el carrito. el estado está en App y baja por props
 export default function Carrito({ carrito, sesion, onCambiarCantidad, onQuitar, onVaciar }) {
   if (carrito.length === 0) {
     return (

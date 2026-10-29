@@ -1,4 +1,4 @@
-// Simulación del pago y registro de pedidos (no hay backend todavía).
+// pago simulado y guardado de pedidos (todavía no hay backend real)
 
 import { descontarStock } from '../datos/productos.js'
 
@@ -13,7 +13,7 @@ export function obtenerPedidos() {
   }
 }
 
-// Genera un número de orden con la fecha, ej: 20261028-1234
+// número de orden con la fecha, ej 20261028-1234
 export function generarNumeroOrden(fecha = new Date()) {
   const anio = fecha.getFullYear()
   const mes = String(fecha.getMonth() + 1).padStart(2, '0')
@@ -22,14 +22,14 @@ export function generarNumeroOrden(fecha = new Date()) {
   return `${anio}${mes}${dia}-${correlativo}`
 }
 
-// Regla de la "pasarela" simulada: una tarjeta que termina en 0 se rechaza.
-// Sirve para mostrar en la presentación tanto la compra exitosa como la fallida.
+// regla inventada de la pasarela: si la tarjeta termina en 0 se rechaza.
+// así puedo mostrar los dos casos (compra ok y pago fallido) en la presentación
 export function pagoAprobado(numeroTarjeta) {
   const limpio = (numeroTarjeta || '').replace(/\s/g, '')
   return limpio.length === 16 && !limpio.endsWith('0')
 }
 
-// Procesa la compra. Devuelve el pedido con su estado ('aprobado' o 'rechazado').
+// arma el pedido y lo deja 'aprobado' o 'rechazado' según la tarjeta
 export function procesarPago(carrito, datosCliente, total) {
   const pedido = {
     numero: generarNumeroOrden(),

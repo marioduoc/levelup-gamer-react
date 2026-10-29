@@ -1,7 +1,7 @@
 import { Row, Col } from 'react-bootstrap'
 import TarjetaProducto from './TarjetaProducto.jsx'
 
-// Grilla responsiva: 1 columna en celular, 2 en tablet, 3 o 4 en escritorio.
+// grilla responsiva: 1 columna en celu, 2 en tablet y 3-4 en pantalla grande
 export default function GrillaProductos({ productos, onAgregar }) {
   if (productos.length === 0) {
     return <p className="text-secondary">No hay productos para mostrar.</p>

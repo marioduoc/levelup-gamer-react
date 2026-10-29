@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router'
 import CampoFormulario from '../componentes/CampoFormulario.jsx'
 import { iniciarSesion } from '../datos/usuarios.js'
 
-// Inicio de sesión. Si los datos son correctos avisa a App con onIniciarSesion(usuario).
+// login. si el correo y la clave calzan le avisa a App con onIniciarSesion(usuario)
 export default function Login({ onIniciarSesion }) {
   const navegar = useNavigate()
   const [correo, setCorreo] = useState('')
@@ -34,7 +34,7 @@ export default function Login({ onIniciarSesion }) {
     <Container className="py-4" style={{ maxWidth: 480 }}>
       <h1 className="section-title">Iniciar sesión</h1>
 
-      {/* El mensaje de error solo aparece cuando hay un error */}
+      {/* el error solo se muestra si hay */}
       {error && <Alert variant="danger">{error}</Alert>}
 
       <Form noValidate onSubmit={enviar}>

@@ -1,5 +1,5 @@
-// Fuente de datos simulada (hace de "base de datos") para los productos.
-// Los datos se guardan en localStorage para que no se pierdan al recargar.
+// catálogo de productos. hace de "base de datos" guardando todo en localStorage
+// para que no se pierda al recargar
 
 export const productosIniciales = [
   {
@@ -126,32 +126,28 @@ export const productosIniciales = [
 
 const CLAVE_PRODUCTOS = 'levelup_productos'
 
-// ---------- CRUD ----------
-
-// READ: devuelve todos los productos. La primera vez copia los iniciales a localStorage.
+// devuelve todos los productos. la primera vez copia los iniciales a localStorage
 export function obtenerProductos() {
   try {
     const guardado = localStorage.getItem(CLAVE_PRODUCTOS)
     if (guardado) return JSON.parse(guardado)
   } catch {
-    // si lo guardado está corrupto, seguimos con los productos iniciales
+    // si lo guardado quedó corrupto seguimos con los iniciales
   }
   const copia = JSON.parse(JSON.stringify(productosIniciales))
   localStorage.setItem(CLAVE_PRODUCTOS, JSON.stringify(copia))
   return copia
 }
 
-// Guarda la lista completa (uso interno).
 export function guardarProductos(lista) {
   localStorage.setItem(CLAVE_PRODUCTOS, JSON.stringify(lista))
 }
 
-// READ (uno): busca un producto por su código. Devuelve undefined si no existe.
 export function buscarProducto(codigo) {
   return obtenerProductos().find((p) => p.codigo === codigo)
 }
 
-// CREATE / UPDATE: si el código ya existe lo reemplaza, si no lo agrega.
+// si el código ya existe lo reemplaza, si no lo agrega (sirve para el admin de la ep3)
 export function guardarProducto(producto) {
   const lista = obtenerProductos()
   const indice = lista.findIndex((p) => p.codigo === producto.codigo)
@@ -163,36 +159,30 @@ export function guardarProducto(producto) {
   guardarProductos(lista)
 }
 
-// DELETE: elimina un producto por código.
 export function eliminarProducto(codigo) {
   guardarProductos(obtenerProductos().filter((p) => p.codigo !== codigo))
 }
 
-// Vuelve a dejar el catálogo como al principio.
 export function restaurarCatalogo() {
   guardarProductos(JSON.parse(JSON.stringify(productosIniciales)))
 }
 
-// ---------- Consultas de apoyo ----------
-
-// Lista de categorías sin repetir.
 export function obtenerCategorias() {
   const categorias = obtenerProductos().map((p) => p.categoria)
   return [...new Set(categorias)]
 }
 
-// Solo los productos con descuento (oferta mayor a 0).
 export function obtenerOfertas() {
   return obtenerProductos().filter((p) => p.oferta > 0)
 }
 
-// Precio que paga el cliente: aplica la oferta si la hay.
+// precio ya con la oferta aplicada
 export function precioFinal(producto) {
   if (!producto.oferta) return producto.precio
   return Math.round(producto.precio * (1 - producto.oferta / 100))
 }
 
-// Descuenta del stock lo que se compró (se usa al pagar).
+// baja el stock de lo comprado, se llama al pagar
 export function descontarStock(itemsComprados) {
   const lista = obtenerProductos()
   itemsComprados.forEach((item) => {

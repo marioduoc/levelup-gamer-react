@@ -1,7 +1,7 @@
 import { Container, Row, Col } from 'react-bootstrap'
 import { Link } from 'react-router'
 
-// Se calcula una sola vez al cargar el archivo (no en cada render).
+// se calcula una vez al cargar, no en cada render
 const ANIO_ACTUAL = new Date().getFullYear()
 
 export default function PiePagina() {

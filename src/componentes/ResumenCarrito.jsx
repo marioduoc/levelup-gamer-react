@@ -1,7 +1,6 @@
 import { calcularSubtotal, calcularDescuento, calcularTotal, formatearPrecio } from '../utils/carrito.js'
 
-// Muestra subtotal, descuento (solo si aplica) y total.
-// Props: carrito (lista de items) y correo del cliente (para el descuento Duoc).
+// subtotal, descuento (si el correo es duoc) y total
 export default function ResumenCarrito({ carrito, correo }) {
   const subtotal = calcularSubtotal(carrito)
   const descuento = calcularDescuento(carrito, correo)

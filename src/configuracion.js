@@ -1,3 +1,2 @@
-// Archivo de preparación de las pruebas.
-// Carga los matchers extra de jest-dom (toBeInTheDocument, toBeDisabled, etc.)
+// se carga antes de las pruebas, trae los matchers de jest-dom (toBeInTheDocument, etc)
 import '@testing-library/jest-dom/vitest'

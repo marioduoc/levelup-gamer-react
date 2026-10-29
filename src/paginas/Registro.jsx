@@ -21,9 +21,9 @@ const DATOS_INICIALES = {
 
 export default function Registro() {
   const navegar = useNavigate()
-  const [datos, setDatos] = useState(DATOS_INICIALES) // formulario controlado
+  const [datos, setDatos] = useState(DATOS_INICIALES)
   const [errores, setErrores] = useState({})
-  const [mensaje, setMensaje] = useState(null) // { tipo: 'success' | 'danger', texto }
+  const [mensaje, setMensaje] = useState(null)
 
   function cambiar(e) {
     const { name, value } = e.target
