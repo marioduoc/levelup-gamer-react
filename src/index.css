@@ -1,0 +1,121 @@
+/* Identidad de marca Level-Up Gamer sobre Bootstrap (tema oscuro). */
+:root {
+  --bg-principal: #000000;
+  --bg-superficie: #121212;
+  --azul-electrico: #1e90ff;
+  --verde-neon: #39ff14;
+  --texto-principal: #ffffff;
+  --texto-secundario: #d3d3d3;
+
+  --font-titulo: 'Orbitron', sans-serif;
+  --font-texto: 'Roboto', sans-serif;
+}
+
+body {
+  background-color: var(--bg-principal);
+  color: var(--texto-principal);
+  font-family: var(--font-texto);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1;
+}
+
+h1, h2, h3, .logo {
+  font-family: var(--font-titulo);
+}
+
+.logo span {
+  color: var(--verde-neon);
+}
+
+/* Botón principal verde neón (sobrescribe el "primary" de Bootstrap). */
+.btn-primary {
+  --bs-btn-bg: var(--verde-neon);
+  --bs-btn-border-color: var(--verde-neon);
+  --bs-btn-color: #000;
+  --bs-btn-hover-bg: #2fd60f;
+  --bs-btn-hover-border-color: #2fd60f;
+  --bs-btn-hover-color: #000;
+  --bs-btn-disabled-bg: #2a2a2a;
+  --bs-btn-disabled-border-color: #2a2a2a;
+  --bs-btn-disabled-color: #777;
+  font-weight: 700;
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--azul-electrico);
+  --bs-btn-border-color: var(--azul-electrico);
+  --bs-btn-hover-bg: var(--azul-electrico);
+  --bs-btn-hover-border-color: var(--azul-electrico);
+  --bs-btn-hover-color: #fff;
+}
+
+.navbar, .site-footer {
+  background-color: var(--bg-superficie) !important;
+}
+
+.nav-link.active {
+  color: var(--azul-electrico) !important;
+}
+
+.hero {
+  background:
+    radial-gradient(circle at top right, rgba(30, 144, 255, 0.15), transparent 60%),
+    radial-gradient(circle at bottom left, rgba(57, 255, 20, 0.12), transparent 60%);
+  padding: 4rem 0;
+  text-align: center;
+}
+
+.hero h1 span {
+  color: var(--verde-neon);
+}
+
+.section-title {
+  margin: 2rem 0 1rem;
+  font-size: 1.5rem;
+  border-left: 4px solid var(--verde-neon);
+  padding-left: 0.75rem;
+}
+
+.card {
+  background-color: var(--bg-superficie);
+  border: 1px solid #1f1f1f;
+}
+
+.card img {
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.price {
+  color: var(--verde-neon);
+  font-weight: 700;
+}
+
+.price-old {
+  color: var(--texto-secundario);
+  text-decoration: line-through;
+  font-size: 0.9rem;
+}
+
+.cart-count {
+  background: var(--verde-neon);
+  color: #000;
+}
+
+.site-footer {
+  border-top: 1px solid #1f1f1f;
+  color: var(--texto-secundario);
+  padding: 2rem 0 1rem;
+  margin-top: 3rem;
+}
