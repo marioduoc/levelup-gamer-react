@@ -1,9 +1,8 @@
 import { Card, Button, Badge } from 'react-bootstrap'
 import { Link } from 'react-router'
 import { formatearPrecio } from '../utils/carrito.js'
-import { precioFinal } from '../datos/productos.js'
 
-// tarjeta de un producto en el catálogo
+// tarjeta de un producto. si no llega onAgregar (ej: vendedor) no se muestra el botón
 export default function TarjetaProducto({ producto, onAgregar }) {
   const sinStock = producto.stock <= 0
   const stockCritico = !sinStock && producto.stock <= producto.stockCritico
@@ -29,15 +28,17 @@ export default function TarjetaProducto({ producto, onAgregar }) {
 
         <div className="mt-auto">
           {tieneOferta && <div className="price-old">{formatearPrecio(producto.precio)}</div>}
-          <p className="price mb-2">{formatearPrecio(precioFinal(producto))}</p>
-          <Button
-            variant="primary"
-            className="w-100"
-            disabled={sinStock}
-            onClick={() => onAgregar(producto)}
-          >
-            {sinStock ? 'Sin stock' : 'Añadir al carrito'}
-          </Button>
+          <p className="price mb-2">{formatearPrecio(producto.precioFinal)}</p>
+          {onAgregar && (
+            <Button
+              variant="primary"
+              className="w-100"
+              disabled={sinStock}
+              onClick={() => onAgregar(producto)}
+            >
+              {sinStock ? 'Sin stock' : 'Añadir al carrito'}
+            </Button>
+          )}
         </div>
       </Card.Body>
     </Card>

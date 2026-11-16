@@ -1,40 +1,48 @@
 import { useState } from 'react'
 import { Container, Form, Button, Alert } from 'react-bootstrap'
-import { Link, useNavigate } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 import CampoFormulario from '../componentes/CampoFormulario.jsx'
-import { iniciarSesion } from '../datos/usuarios.js'
+import { useAuth } from '../auth/contexto.js'
+import { puede } from '../auth/permisos.js'
+import { mensajeError } from '../api/cliente.js'
 
-// login. si el correo y la clave calzan le avisa a App con onIniciarSesion(usuario)
-export default function Login({ onIniciarSesion }) {
+export default function Login() {
   const navegar = useNavigate()
+  const ubicacion = useLocation()
+  const { iniciarSesion } = useAuth()
   const [correo, setCorreo] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [enviando, setEnviando] = useState(false)
 
-  function enviar(e) {
+  async function enviar(e) {
     e.preventDefault()
-
     if (!correo.trim() || !password) {
       setError('Ingresa tu correo y contraseña.')
       return
     }
 
-    const usuario = iniciarSesion(correo, password)
-    if (!usuario) {
-      setError('Correo o contraseña incorrectos.')
-      return
+    setEnviando(true)
+    try {
+      const usuario = await iniciarSesion(correo.trim(), password)
+      setError('')
+      // vuelve a la página que pidió login; si no, admin y vendedor van al panel
+      const destino = ubicacion.state?.desde ?? (puede(usuario, 'verPanel') ? '/admin' : '/')
+      navegar(destino, { replace: true })
+    } catch (err) {
+      setError(mensajeError(err, 'No se pudo iniciar sesión.'))
+    } finally {
+      setEnviando(false)
     }
-
-    setError('')
-    onIniciarSesion(usuario)
-    navegar('/')
   }
 
   return (
     <Container className="py-4" style={{ maxWidth: 480 }}>
       <h1 className="section-title">Iniciar sesión</h1>
 
-      {/* el error solo se muestra si hay */}
+      {ubicacion.state?.desde && !error && (
+        <Alert variant="info">Inicia sesión para continuar.</Alert>
+      )}
       {error && <Alert variant="danger">{error}</Alert>}
 
       <Form noValidate onSubmit={enviar}>
@@ -44,7 +52,9 @@ export default function Login({ onIniciarSesion }) {
         <CampoFormulario id="password" label="Contraseña">
           <Form.Control type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
         </CampoFormulario>
-        <Button type="submit" variant="primary" className="w-100">Entrar</Button>
+        <Button type="submit" variant="primary" className="w-100" disabled={enviando}>
+          {enviando ? 'Entrando...' : 'Entrar'}
+        </Button>
       </Form>
 
       <p className="text-secondary mt-3 mb-0">

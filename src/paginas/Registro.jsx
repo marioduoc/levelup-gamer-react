@@ -3,7 +3,8 @@ import { Container, Form, Button, Alert, Row, Col } from 'react-bootstrap'
 import { useNavigate } from 'react-router'
 import CampoFormulario from '../componentes/CampoFormulario.jsx'
 import { regiones, comunasDe } from '../datos/regiones.js'
-import { registrarUsuario } from '../datos/usuarios.js'
+import { registrar } from '../api/authApi.js'
+import { erroresDeCampos, mensajeError } from '../api/cliente.js'
 import { validarRegistro } from '../utils/validaciones.js'
 
 const DATOS_INICIALES = {
@@ -34,7 +35,7 @@ export default function Registro() {
     })
   }
 
-  function enviar(e) {
+  async function enviar(e) {
     e.preventDefault()
     const erroresEncontrados = validarRegistro(datos)
     setErrores(erroresEncontrados)
@@ -43,9 +44,13 @@ export default function Registro() {
       return
     }
 
-    const resultado = registrarUsuario(datos)
-    if (!resultado.ok) {
-      setMensaje({ tipo: 'danger', texto: resultado.error })
+    // el código de referido es solo visual, el backend no lo recibe
+    const { codigoReferido: _referido, ...paraEnviar } = datos
+    try {
+      await registrar(paraEnviar)
+    } catch (error) {
+      setErrores(erroresDeCampos(error))
+      setMensaje({ tipo: 'danger', texto: mensajeError(error, 'No se pudo crear la cuenta.') })
       return
     }
 

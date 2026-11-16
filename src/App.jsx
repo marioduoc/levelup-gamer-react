@@ -11,14 +11,30 @@ import DetalleProducto from './paginas/DetalleProducto.jsx'
 import Carrito from './paginas/Carrito.jsx'
 import Checkout from './paginas/Checkout.jsx'
 import ResultadoCompra from './paginas/ResultadoCompra.jsx'
+import MisCompras from './paginas/MisCompras.jsx'
 import Registro from './paginas/Registro.jsx'
 import Login from './paginas/Login.jsx'
 import Nosotros from './paginas/Nosotros.jsx'
 import Blog from './paginas/Blog.jsx'
 import DetalleBlog from './paginas/DetalleBlog.jsx'
 import Contacto from './paginas/Contacto.jsx'
+import SinPermiso from './paginas/SinPermiso.jsx'
 import NoEncontrada from './paginas/NoEncontrada.jsx'
 
+import PanelLayout from './paginas/admin/PanelLayout.jsx'
+import PanelInicio from './paginas/admin/PanelInicio.jsx'
+import AdminProductos from './paginas/admin/AdminProductos.jsx'
+import DetalleProductoAdmin from './paginas/admin/DetalleProductoAdmin.jsx'
+import FormProducto from './paginas/admin/FormProducto.jsx'
+import AdminCategorias from './paginas/admin/AdminCategorias.jsx'
+import AdminOrdenes from './paginas/admin/AdminOrdenes.jsx'
+import DetalleOrden from './paginas/admin/DetalleOrden.jsx'
+import AdminUsuarios from './paginas/admin/AdminUsuarios.jsx'
+import FormUsuario from './paginas/admin/FormUsuario.jsx'
+
+import RutaProtegida from './auth/RutaProtegida.jsx'
+import { useAuth } from './auth/contexto.js'
+import { puedeUsarCarrito } from './auth/permisos.js'
 import {
   CLAVE_CARRITO,
   leerCarritoGuardado,
@@ -28,36 +44,17 @@ import {
   contarItems,
 } from './utils/carrito.js'
 
-const CLAVE_SESION = 'levelup_sesion'
-
-function leerSesionGuardada() {
-  try {
-    const guardado = localStorage.getItem(CLAVE_SESION)
-    return guardado ? JSON.parse(guardado) : null
-  } catch {
-    return null
-  }
-}
-
-// componente padre. acá vive el estado que ocupan varias páginas: el carrito y la sesión
+// el carrito vive aquí porque lo usan varias páginas; la sesión vive en AuthContext
 export default function App() {
-  // le paso una función a useState para que localStorage se lea solo la primera vez
+  const { usuario } = useAuth()
   const [carrito, setCarrito] = useState(leerCarritoGuardado)
-  const [sesion, setSesion] = useState(leerSesionGuardada)
-  const [ultimoPedido, setUltimoPedido] = useState(null)
-  const [aviso, setAviso] = useState('') // mensajito tipo "producto agregado"
+  const [ultimaBoleta, setUltimaBoleta] = useState(null)
+  const [aviso, setAviso] = useState('')
 
-  // guardo el carrito en el navegador cada vez que cambia
   useEffect(() => {
     localStorage.setItem(CLAVE_CARRITO, JSON.stringify(carrito))
   }, [carrito])
 
-  useEffect(() => {
-    if (sesion) localStorage.setItem(CLAVE_SESION, JSON.stringify(sesion))
-    else localStorage.removeItem(CLAVE_SESION)
-  }, [sesion])
-
-  // el aviso se borra solo a los 2,5 seg
   useEffect(() => {
     if (!aviso) return
     const temporizador = setTimeout(() => setAviso(''), 2500)
@@ -74,31 +71,13 @@ export default function App() {
     setAviso(`"${producto.nombre}" agregado al carrito.`)
   }
 
-  function manejarCambiarCantidad(codigo, cantidad) {
-    setCarrito(cambiarCantidad(carrito, codigo, cantidad))
+  function manejarPagoRealizado(boleta) {
+    setUltimaBoleta(boleta)
+    if (boleta.estado === 'APROBADA') setCarrito([])
   }
 
-  function manejarQuitar(codigo) {
-    setCarrito(quitarProducto(carrito, codigo))
-  }
-
-  function manejarVaciar() {
-    setCarrito([])
-  }
-
-  function manejarIniciarSesion(usuario) {
-    setSesion(usuario)
-    setAviso(`¡Bienvenido, ${usuario.nombre}!`)
-  }
-
-  function manejarCerrarSesion() {
-    setSesion(null)
-  }
-
-  function manejarPagoRealizado(pedido) {
-    setUltimoPedido(pedido)
-    if (pedido.estado === 'aprobado') setCarrito([])
-  }
+  // el vendedor no compra, así que no recibe el botón de agregar
+  const onAgregar = puedeUsarCarrito(usuario) ? manejarAgregar : null
 
   return (
     <>
@@ -109,44 +88,67 @@ export default function App() {
       )}
 
       <Routes>
-        <Route
-          element={
-            <Layout
-              cantidadCarrito={contarItems(carrito)}
-              sesion={sesion}
-              onCerrarSesion={manejarCerrarSesion}
-            />
-          }
-        >
-          <Route index element={<Inicio onAgregar={manejarAgregar} />} />
-          <Route path="productos" element={<Catalogo onAgregar={manejarAgregar} />} />
+        <Route element={<Layout cantidadCarrito={contarItems(carrito)} />}>
+          <Route index element={<Inicio onAgregar={onAgregar} />} />
+          <Route path="productos" element={<Catalogo onAgregar={onAgregar} />} />
           <Route path="categorias" element={<Categorias />} />
-          <Route path="ofertas" element={<Ofertas onAgregar={manejarAgregar} />} />
-          <Route path="producto/:codigo" element={<DetalleProducto onAgregar={manejarAgregar} />} />
+          <Route path="ofertas" element={<Ofertas onAgregar={onAgregar} />} />
+          <Route path="producto/:codigo" element={<DetalleProducto onAgregar={onAgregar} />} />
           <Route
             path="carrito"
             element={
               <Carrito
                 carrito={carrito}
-                sesion={sesion}
-                onCambiarCantidad={manejarCambiarCantidad}
-                onQuitar={manejarQuitar}
-                onVaciar={manejarVaciar}
+                onCambiarCantidad={(codigo, cantidad) => setCarrito(cambiarCantidad(carrito, codigo, cantidad))}
+                onQuitar={(codigo) => setCarrito(quitarProducto(carrito, codigo))}
+                onVaciar={() => setCarrito([])}
               />
             }
           />
           <Route
             path="checkout"
-            element={<Checkout carrito={carrito} sesion={sesion} onPagoRealizado={manejarPagoRealizado} />}
+            element={
+              <RutaProtegida permiso="comprar">
+                <Checkout carrito={carrito} onPagoRealizado={manejarPagoRealizado} />
+              </RutaProtegida>
+            }
           />
-          <Route path="compra-exitosa" element={<ResultadoCompra pedido={ultimoPedido} exito />} />
-          <Route path="compra-fallida" element={<ResultadoCompra pedido={ultimoPedido} exito={false} />} />
+          <Route path="compra-exitosa" element={<ResultadoCompra boleta={ultimaBoleta} exito />} />
+          <Route path="compra-fallida" element={<ResultadoCompra boleta={ultimaBoleta} exito={false} />} />
+          <Route path="mis-compras" element={<RutaProtegida permiso="comprar"><MisCompras /></RutaProtegida>} />
           <Route path="registro" element={<Registro />} />
-          <Route path="login" element={<Login onIniciarSesion={manejarIniciarSesion} />} />
+          <Route path="login" element={<Login />} />
           <Route path="nosotros" element={<Nosotros />} />
           <Route path="blog" element={<Blog />} />
           <Route path="blog/:id" element={<DetalleBlog />} />
           <Route path="contacto" element={<Contacto />} />
+          <Route path="sin-permiso" element={<SinPermiso />} />
+
+          {/* panel: cada ruta exige su propio permiso, no basta con entrar a /admin */}
+          <Route path="admin" element={<RutaProtegida permiso="verPanel"><PanelLayout /></RutaProtegida>}>
+            <Route index element={<PanelInicio />} />
+            <Route element={<RutaProtegida permiso="verProductos" />}>
+              <Route path="productos" element={<AdminProductos />} />
+              <Route path="productos/:codigo" element={<DetalleProductoAdmin />} />
+            </Route>
+            <Route element={<RutaProtegida permiso="editarProductos" />}>
+              <Route path="productos/nuevo" element={<FormProducto />} />
+              <Route path="productos/:codigo/editar" element={<FormProducto />} />
+            </Route>
+            <Route element={<RutaProtegida permiso="gestionarCategorias" />}>
+              <Route path="categorias" element={<AdminCategorias />} />
+            </Route>
+            <Route element={<RutaProtegida permiso="verOrdenes" />}>
+              <Route path="ordenes" element={<AdminOrdenes />} />
+              <Route path="ordenes/:id" element={<DetalleOrden />} />
+            </Route>
+            <Route element={<RutaProtegida permiso="gestionarUsuarios" />}>
+              <Route path="usuarios" element={<AdminUsuarios />} />
+              <Route path="usuarios/nuevo" element={<FormUsuario />} />
+              <Route path="usuarios/:id/editar" element={<FormUsuario />} />
+            </Route>
+          </Route>
+
           <Route path="*" element={<NoEncontrada />} />
         </Route>
       </Routes>

@@ -1,6 +1,5 @@
 // funciones del carrito. devuelven un carrito nuevo en vez de modificar el que llega,
 // si no React no se entera del cambio
-import { precioFinal } from '../datos/productos.js'
 
 export const CLAVE_CARRITO = 'levelup_carrito'
 export const DESCUENTO_DUOC = 0.2 // 20% para correos duoc
@@ -34,7 +33,7 @@ export function agregarProducto(carrito, producto) {
     {
       codigo: producto.codigo,
       nombre: producto.nombre,
-      precio: precioFinal(producto),
+      precio: producto.precioFinal,
       imagen: producto.imagen,
       stock: producto.stock,
       cantidad: 1,

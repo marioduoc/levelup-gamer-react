@@ -1,11 +1,13 @@
 import { Container, Button } from 'react-bootstrap'
 import { Link } from 'react-router'
 import GrillaProductos from '../componentes/GrillaProductos.jsx'
-import { obtenerProductos } from '../datos/productos.js'
+import EstadoCarga from '../componentes/EstadoCarga.jsx'
+import { listarProductos } from '../api/productosApi.js'
+import { useDatos } from '../hooks/useDatos.js'
 
 export default function Inicio({ onAgregar }) {
-  // solo los primeros 4 como destacados
-  const destacados = obtenerProductos().slice(0, 4)
+  const { datos, cargando, error, recargar } = useDatos(() => listarProductos())
+  const destacados = (datos ?? []).slice(0, 4)
 
   return (
     <>
@@ -26,7 +28,9 @@ export default function Inicio({ onAgregar }) {
 
       <Container>
         <h2 className="section-title">Productos destacados</h2>
-        <GrillaProductos productos={destacados} onAgregar={onAgregar} />
+        <EstadoCarga cargando={cargando} error={error} onReintentar={recargar}>
+          <GrillaProductos productos={destacados} onAgregar={onAgregar} />
+        </EstadoCarga>
       </Container>
     </>
   )

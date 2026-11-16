@@ -1,8 +1,22 @@
+import { startTransition } from 'react'
 import { Navbar, Nav, Container, Button, Badge } from 'react-bootstrap'
-import { NavLink, Link } from 'react-router'
+import { NavLink, Link, useNavigate } from 'react-router'
+import { useAuth } from '../auth/contexto.js'
+import { puedeUsarCarrito } from '../auth/permisos.js'
 
-// barra de arriba. recibe todo por props (items del carrito, sesión y cerrar sesión)
-export default function BarraNavegacion({ cantidadCarrito, sesion, onCerrarSesion }) {
+// los enlaces se arman según el rol: el vendedor no ve el carrito y solo admin/vendedor ven el panel
+export default function BarraNavegacion({ cantidadCarrito }) {
+  const { usuario, puede, cerrarSesion } = useAuth()
+  const navegar = useNavigate()
+
+  // navegar y borrar la sesión en la misma transición; si no, una ruta protegida alcanza a mandar al login
+  function salir() {
+    startTransition(() => {
+      navegar('/', { replace: true })
+      cerrarSesion()
+    })
+  }
+
   return (
     <Navbar expand="lg" sticky="top" className="shadow-sm">
       <Container>
@@ -10,7 +24,6 @@ export default function BarraNavegacion({ cantidadCarrito, sesion, onCerrarSesio
           LEVEL<span>UP</span> GAMER
         </Navbar.Brand>
 
-        {/* en celular el menú se mete detrás de este botón */}
         <Navbar.Toggle aria-controls="menu-principal" />
 
         <Navbar.Collapse id="menu-principal">
@@ -22,13 +35,19 @@ export default function BarraNavegacion({ cantidadCarrito, sesion, onCerrarSesio
             <Nav.Link as={NavLink} to="/nosotros">Nosotros</Nav.Link>
             <Nav.Link as={NavLink} to="/blog">Blog</Nav.Link>
             <Nav.Link as={NavLink} to="/contacto">Contacto</Nav.Link>
+            {puede('verPanel') && <Nav.Link as={NavLink} to="/admin">Panel</Nav.Link>}
           </Nav>
 
           <Nav className="align-items-lg-center gap-2">
-            {sesion ? (
+            {usuario ? (
               <>
-                <span className="text-secondary small">Hola, {sesion.nombre}</span>
-                <Button variant="outline-primary" size="sm" onClick={onCerrarSesion}>
+                <span className="text-secondary small">
+                  Hola, {usuario.nombre} <Badge bg="dark" className="border">{usuario.rol}</Badge>
+                </span>
+                {puede('comprar') && (
+                  <Nav.Link as={NavLink} to="/mis-compras">Mis compras</Nav.Link>
+                )}
+                <Button variant="outline-primary" size="sm" onClick={salir}>
                   Cerrar sesión
                 </Button>
               </>
@@ -43,9 +62,11 @@ export default function BarraNavegacion({ cantidadCarrito, sesion, onCerrarSesio
               </>
             )}
 
-            <Nav.Link as={Link} to="/carrito" aria-label="Ver carrito">
-              🛒 <Badge pill className="cart-count" data-testid="contador-carrito">{cantidadCarrito}</Badge>
-            </Nav.Link>
+            {puedeUsarCarrito(usuario) && (
+              <Nav.Link as={Link} to="/carrito" aria-label="Ver carrito">
+                🛒 <Badge pill className="cart-count" data-testid="contador-carrito">{cantidadCarrito}</Badge>
+              </Nav.Link>
+            )}
           </Nav>
         </Navbar.Collapse>
       </Container>

@@ -2,9 +2,12 @@ import { Container, Table, Button, Row, Col } from 'react-bootstrap'
 import { Link } from 'react-router'
 import ResumenCarrito from '../componentes/ResumenCarrito.jsx'
 import { formatearPrecio } from '../utils/carrito.js'
+import { useAuth } from '../auth/contexto.js'
 
 // el carrito. el estado está en App y baja por props
-export default function Carrito({ carrito, sesion, onCambiarCantidad, onQuitar, onVaciar }) {
+export default function Carrito({ carrito, onCambiarCantidad, onQuitar, onVaciar }) {
+  const { usuario } = useAuth()
+
   if (carrito.length === 0) {
     return (
       <Container className="py-5 text-center">
@@ -83,7 +86,12 @@ export default function Carrito({ carrito, sesion, onCambiarCantidad, onQuitar, 
         </Col>
 
         <Col lg={4}>
-          <ResumenCarrito carrito={carrito} correo={sesion?.correo} />
+          <ResumenCarrito carrito={carrito} correo={usuario?.correo} />
+          {!usuario && (
+            <p className="small text-secondary mt-2 mb-0">
+              Al pagar te pediremos iniciar sesión. Las cuentas @duoc.cl tienen 20% de descuento.
+            </p>
+          )}
           <Button as={Link} to="/checkout" variant="primary" className="w-100 mt-3">
             Proceder al pago
           </Button>

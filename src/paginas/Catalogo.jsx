@@ -1,26 +1,29 @@
 import { Container, Form, Row, Col } from 'react-bootstrap'
 import { useSearchParams } from 'react-router'
 import GrillaProductos from '../componentes/GrillaProductos.jsx'
-import { obtenerProductos, obtenerCategorias } from '../datos/productos.js'
+import EstadoCarga from '../componentes/EstadoCarga.jsx'
+import { listarProductos } from '../api/productosApi.js'
+import { listarCategorias } from '../api/categoriasApi.js'
+import { useDatos } from '../hooks/useDatos.js'
 
-// catálogo con buscador y filtro por categoría.
-// guardo el filtro en la url (?buscar=...&categoria=...) así se puede compartir el link
+// el catálogo se pide una vez; buscar y filtrar se hace en el navegador para no llamar a la API en cada tecla.
+// el filtro queda en la url (?buscar=...&categoria=...) así se puede compartir el link
 export default function Catalogo({ onAgregar }) {
   const [parametros, setParametros] = useSearchParams()
   const textoBuscado = parametros.get('buscar') ?? ''
   const categoria = parametros.get('categoria') ?? ''
 
-  const productos = obtenerProductos()
-  const categorias = obtenerCategorias()
+  const productos = useDatos(() => listarProductos())
+  const categorias = useDatos(() => listarCategorias())
 
   function actualizar(clave, valor) {
     const copia = new URLSearchParams(parametros)
     if (valor) copia.set(clave, valor)
-    else copia.delete(clave) // si no hay valor saco la clave de la url
+    else copia.delete(clave)
     setParametros(copia)
   }
 
-  const filtrados = productos.filter((p) => {
+  const filtrados = (productos.datos ?? []).filter((p) => {
     const coincideTexto = p.nombre.toLowerCase().includes(textoBuscado.toLowerCase())
     const coincideCategoria = categoria === '' || p.categoria === categoria
     return coincideTexto && coincideCategoria
@@ -47,15 +50,17 @@ export default function Catalogo({ onAgregar }) {
             onChange={(e) => actualizar('categoria', e.target.value)}
           >
             <option value="">Todas las categorías</option>
-            {categorias.map((c) => (
-              <option key={c} value={c}>{c}</option>
+            {(categorias.datos ?? []).map((c) => (
+              <option key={c.id} value={c.nombre}>{c.nombre}</option>
             ))}
           </Form.Select>
         </Col>
       </Row>
 
-      <p className="text-secondary small">{filtrados.length} producto(s) encontrado(s)</p>
-      <GrillaProductos productos={filtrados} onAgregar={onAgregar} />
+      <EstadoCarga cargando={productos.cargando} error={productos.error} onReintentar={productos.recargar}>
+        <p className="text-secondary small">{filtrados.length} producto(s) encontrado(s)</p>
+        <GrillaProductos productos={filtrados} onAgregar={onAgregar} />
+      </EstadoCarga>
     </Container>
   )
 }

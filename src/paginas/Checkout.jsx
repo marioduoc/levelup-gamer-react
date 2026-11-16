@@ -1,35 +1,37 @@
 import { useState } from 'react'
-import { Container, Form, Row, Col, Button, Table } from 'react-bootstrap'
+import { Container, Form, Row, Col, Button, Table, Alert } from 'react-bootstrap'
 import { Navigate, useNavigate } from 'react-router'
 import CampoFormulario from '../componentes/CampoFormulario.jsx'
 import ResumenCarrito from '../componentes/ResumenCarrito.jsx'
 import { regiones, comunasDe } from '../datos/regiones.js'
 import { validarCheckout } from '../utils/validaciones.js'
 import { calcularTotal, formatearPrecio } from '../utils/carrito.js'
-import { procesarPago } from '../utils/pedidos.js'
+import { comprar } from '../api/boletasApi.js'
+import { erroresDeCampos, mensajeError } from '../api/cliente.js'
+import { useAuth } from '../auth/contexto.js'
 
-// paso de pago: datos del cliente, dirección y tarjeta
-export default function Checkout({ carrito, sesion, onPagoRealizado }) {
+// datos de envío y tarjeta. la ruta exige sesión con permiso para comprar (ver App)
+export default function Checkout({ carrito, onPagoRealizado }) {
   const navegar = useNavigate()
+  const { usuario } = useAuth()
 
-  // si hay sesión los datos vienen rellenados
   const [datos, setDatos] = useState({
-    nombre: sesion?.nombre ?? '',
-    apellidos: sesion?.apellidos ?? '',
-    correo: sesion?.correo ?? '',
-    calle: sesion?.direccion ?? '',
+    nombre: usuario?.nombre ?? '',
+    apellidos: usuario?.apellidos ?? '',
+    correo: usuario?.correo ?? '',
+    calle: usuario?.direccion ?? '',
     departamento: '',
-    region: sesion?.region ?? '',
-    comuna: sesion?.comuna ?? '',
+    region: usuario?.region ?? '',
+    comuna: usuario?.comuna ?? '',
     indicaciones: '',
     tarjeta: '',
   })
   const [errores, setErrores] = useState({})
+  const [errorServidor, setErrorServidor] = useState('')
+  const [enviando, setEnviando] = useState(false)
   const [pagoEnviado, setPagoEnviado] = useState(false)
 
-  // ruta protegida: si el carrito está vacío no corresponde estar acá.
-  // ojo: al pagar el carrito queda vacío justo antes de salir, por eso la bandera
-  // pagoEnviado, si no me rebotaba al carrito en vez de ir a la pantalla de resultado
+  // al pagar el carrito se vacía justo antes de navegar; la bandera evita rebotar al carrito
   if (carrito.length === 0 && !pagoEnviado) {
     return <Navigate to="/carrito" replace />
   }
@@ -38,32 +40,39 @@ export default function Checkout({ carrito, sesion, onPagoRealizado }) {
     const { name, value } = e.target
     setDatos((anterior) => {
       const nuevo = { ...anterior, [name]: value }
-      if (name === 'region') nuevo.comuna = '' // si cambio la región, limpio la comuna
+      if (name === 'region') nuevo.comuna = ''
       return nuevo
     })
   }
 
-  function enviar(e) {
+  async function enviar(e) {
     e.preventDefault()
     const erroresEncontrados = validarCheckout(datos)
     setErrores(erroresEncontrados)
     if (Object.keys(erroresEncontrados).length > 0) return
 
-    const total = calcularTotal(carrito, datos.correo)
-    const pedido = procesarPago(carrito, datos, total)
-    setPagoEnviado(true)
-    onPagoRealizado(pedido)
-
-    if (pedido.estado === 'aprobado') {
-      navegar('/compra-exitosa')
-    } else {
-      navegar('/compra-fallida')
+    setEnviando(true)
+    setErrorServidor('')
+    try {
+      const boleta = await comprar(datos, carrito)
+      setPagoEnviado(true)
+      onPagoRealizado(boleta)
+      navegar(boleta.estado === 'APROBADA' ? '/compra-exitosa' : '/compra-fallida')
+    } catch (error) {
+      setErrores(erroresDeCampos(error))
+      setErrorServidor(mensajeError(error, 'No se pudo procesar la compra.'))
+    } finally {
+      setEnviando(false)
     }
   }
+
+  // la vista previa del descuento usa el correo de la cuenta, igual que el backend
+  const totalEstimado = calcularTotal(carrito, usuario?.correo)
 
   return (
     <Container className="py-4">
       <h1 className="section-title">Checkout</h1>
+      {errorServidor && <Alert variant="danger">{errorServidor}</Alert>}
 
       <Row className="g-4">
         <Col lg={7}>
@@ -132,8 +141,8 @@ export default function Checkout({ carrito, sesion, onPagoRealizado }) {
               </Form.Text>
             </CampoFormulario>
 
-            <Button type="submit" variant="primary" size="lg" className="w-100">
-              Pagar ahora {formatearPrecio(calcularTotal(carrito, datos.correo))}
+            <Button type="submit" variant="primary" size="lg" className="w-100" disabled={enviando}>
+              {enviando ? 'Procesando...' : `Pagar ahora ${formatearPrecio(totalEstimado)}`}
             </Button>
           </Form>
         </Col>
@@ -157,7 +166,7 @@ export default function Checkout({ carrito, sesion, onPagoRealizado }) {
               ))}
             </tbody>
           </Table>
-          <ResumenCarrito carrito={carrito} correo={datos.correo} />
+          <ResumenCarrito carrito={carrito} correo={usuario?.correo} />
         </Col>
       </Row>
     </Container>
