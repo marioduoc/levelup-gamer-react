@@ -37,6 +37,7 @@ export default function FormProducto() {
   function cambiar(e) {
     const { name, value } = e.target
     setDatos((anterior) => ({ ...anterior, [name]: name === 'codigo' ? value.toUpperCase() : value }))
+    setErrores((anteriores) => ({ ...anteriores, [name]: undefined }))
   }
 
   async function guardar(e) {

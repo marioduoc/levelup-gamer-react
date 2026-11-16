@@ -36,6 +36,7 @@ export default function FormUsuario() {
       if (name === 'region') nuevo.comuna = ''
       return nuevo
     })
+    setErrores((anteriores) => ({ ...anteriores, [name]: undefined }))
   }
 
   async function guardar(e) {
