@@ -1,24 +1,20 @@
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router'
 import Carrito from './Carrito.jsx'
+import { renderizarConSesion } from '../pruebas/renderizar.jsx'
 
 const CARRITO = [
   { codigo: 'JM001', nombre: 'Catan', precio: 29990, imagen: '/img/JM001.jpg', stock: 25, cantidad: 2 },
   { codigo: 'MS001', nombre: 'Mouse', precio: 49990, imagen: '/img/MS001.jpg', stock: 2, cantidad: 2 },
 ]
 
-function renderizar(props = {}) {
+function renderizar(props = {}, usuario = null) {
   const espias = {
     onCambiarCantidad: vi.fn(),
     onQuitar: vi.fn(),
     onVaciar: vi.fn(),
   }
-  render(
-    <MemoryRouter>
-      <Carrito carrito={CARRITO} sesion={null} {...espias} {...props} />
-    </MemoryRouter>,
-  )
+  renderizarConSesion(<Carrito carrito={CARRITO} {...espias} {...props} />, { usuario })
   return espias
 }
 
@@ -63,8 +59,15 @@ describe('Carrito', () => {
     expect(espias.onVaciar).toHaveBeenCalledTimes(1)
   })
 
-  it('aplica el descuento Duoc cuando hay sesión con correo Duoc', () => {
-    renderizar({ sesion: { correo: 'ana@duoc.cl' } })
+  it('aplica el descuento Duoc cuando la cuenta tiene correo Duoc', () => {
+    renderizar({}, { nombre: 'Ana', correo: 'ana@duoc.cl', rol: 'CLIENTE' })
     expect(screen.getByText('Descuento Duoc (20%)')).toBeInTheDocument()
+    expect(screen.queryByText(/te pediremos iniciar sesión/)).not.toBeInTheDocument()
+  })
+
+  it('sin sesión avisa que al pagar se pedirá iniciar sesión', () => {
+    renderizar()
+    expect(screen.getByText(/te pediremos iniciar sesión/)).toBeInTheDocument()
+    expect(screen.queryByText('Descuento Duoc (20%)')).not.toBeInTheDocument()
   })
 })

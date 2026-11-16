@@ -1,40 +1,53 @@
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router'
 import BarraNavegacion from './BarraNavegacion.jsx'
+import { renderizarConSesion } from '../pruebas/renderizar.jsx'
+import { USUARIOS } from '../pruebas/datos.js'
 
-function renderizar(props) {
-  return render(
-    <MemoryRouter>
-      <BarraNavegacion cantidadCarrito={0} sesion={null} onCerrarSesion={vi.fn()} {...props} />
-    </MemoryRouter>,
-  )
+function renderizar(usuario = null, cantidadCarrito = 0) {
+  return renderizarConSesion(<BarraNavegacion cantidadCarrito={cantidadCarrito} />, { usuario })
 }
 
 describe('BarraNavegacion', () => {
   it('muestra la cantidad de items del carrito que recibe por props', () => {
-    renderizar({ cantidadCarrito: 7 })
+    renderizar(null, 7)
     expect(screen.getByTestId('contador-carrito')).toHaveTextContent('7')
   })
 
-  it('sin sesión muestra "Iniciar sesión" y "Crear cuenta"', () => {
+  it('sin sesión muestra "Iniciar sesión" y "Crear cuenta" pero no el panel', () => {
     renderizar()
-    // Button de react-bootstrap renderizado como <Link> queda con role="button" y href
     expect(screen.getByRole('button', { name: 'Iniciar sesión' })).toHaveAttribute('href', '/login')
     expect(screen.getByRole('button', { name: 'Crear cuenta' })).toHaveAttribute('href', '/registro')
-    expect(screen.queryByText(/Hola,/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Panel' })).not.toBeInTheDocument()
   })
 
-  it('con sesión saluda al usuario y el botón "Cerrar sesión" llama a onCerrarSesion', async () => {
-    const usuario = userEvent.setup()
-    const alCerrar = vi.fn()
-    renderizar({ sesion: { nombre: 'Ana' }, onCerrarSesion: alCerrar })
+  it('un cliente ve sus compras y el carrito, pero no el panel', () => {
+    renderizar(USUARIOS.cliente)
+    expect(screen.getByText(/Hola, Camila/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Mis compras' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Ver carrito' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Panel' })).not.toBeInTheDocument()
+  })
 
-    expect(screen.getByText('Hola, Ana')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Iniciar sesión' })).not.toBeInTheDocument()
+  it('el vendedor ve el panel pero no el carrito ni mis compras', () => {
+    renderizar(USUARIOS.vendedor)
+    expect(screen.getByRole('link', { name: 'Panel' })).toHaveAttribute('href', '/admin')
+    expect(screen.queryByRole('link', { name: 'Ver carrito' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Mis compras' })).not.toBeInTheDocument()
+  })
+
+  it('el admin ve el panel y también puede comprar', () => {
+    renderizar(USUARIOS.admin)
+    expect(screen.getByRole('link', { name: 'Panel' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Ver carrito' })).toBeInTheDocument()
+  })
+
+  it('"Cerrar sesión" llama a cerrarSesion del contexto', async () => {
+    const usuario = userEvent.setup()
+    const { auth } = renderizar(USUARIOS.cliente)
 
     await usuario.click(screen.getByRole('button', { name: 'Cerrar sesión' }))
-    expect(alCerrar).toHaveBeenCalledTimes(1)
+    expect(auth.cerrarSesion).toHaveBeenCalledTimes(1)
   })
 
   it('tiene los enlaces principales del sitio', () => {

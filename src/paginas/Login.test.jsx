@@ -1,20 +1,31 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router'
+import { MemoryRouter, Routes, Route } from 'react-router'
 import Login from './Login.jsx'
-import { registrarUsuario } from '../datos/usuarios.js'
+import { AuthContext } from '../auth/contexto.js'
+import { USUARIOS } from '../pruebas/datos.js'
 
-beforeEach(() => {
-  localStorage.clear()
-  registrarUsuario({ run: '19011022K', nombre: 'Ana', correo: 'ana@duoc.cl', password: '1234' })
-})
-
-function renderizar(onIniciarSesion = vi.fn()) {
+function renderizar(entrada = '/login') {
+  const auth = { usuario: null, verificando: false, iniciarSesion: vi.fn(), cerrarSesion: vi.fn(), puede: () => false }
   render(
-    <MemoryRouter>
-      <Login onIniciarSesion={onIniciarSesion} />
-    </MemoryRouter>,
+    <AuthContext.Provider value={auth}>
+      <MemoryRouter initialEntries={[entrada]}>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<p>inicio</p>} />
+          <Route path="/admin" element={<p>panel</p>} />
+          <Route path="/checkout" element={<p>checkout</p>} />
+        </Routes>
+      </MemoryRouter>
+    </AuthContext.Provider>,
   )
+  return auth
+}
+
+async function escribirCredenciales(usuario, correo, clave) {
+  await usuario.type(screen.getByLabelText('Correo electrónico'), correo)
+  await usuario.type(screen.getByLabelText('Contraseña'), clave)
+  await usuario.click(screen.getByRole('button', { name: 'Entrar' }))
 }
 
 describe('Login', () => {
@@ -23,50 +34,57 @@ describe('Login', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
-  it('el estado cambia cuando el usuario escribe en los campos', async () => {
+  it('si se envía vacío muestra un error y no llama a la API', async () => {
     const usuario = userEvent.setup()
-    renderizar()
-
-    await usuario.type(screen.getByLabelText('Correo electrónico'), 'ana@duoc.cl')
-    await usuario.type(screen.getByLabelText('Contraseña'), '1234')
-
-    expect(screen.getByLabelText('Correo electrónico')).toHaveValue('ana@duoc.cl')
-    expect(screen.getByLabelText('Contraseña')).toHaveValue('1234')
-  })
-
-  it('muestra un error si se envía vacío y NO llama a onIniciarSesion', async () => {
-    const usuario = userEvent.setup()
-    const alIniciar = vi.fn()
-    renderizar(alIniciar)
+    const auth = renderizar()
 
     await usuario.click(screen.getByRole('button', { name: 'Entrar' }))
 
     expect(screen.getByRole('alert')).toHaveTextContent('Ingresa tu correo y contraseña.')
-    expect(alIniciar).not.toHaveBeenCalled()
+    expect(auth.iniciarSesion).not.toHaveBeenCalled()
   })
 
-  it('muestra un error con credenciales incorrectas', async () => {
+  it('muestra el mensaje del backend con credenciales incorrectas', async () => {
     const usuario = userEvent.setup()
-    renderizar()
+    const auth = renderizar()
+    auth.iniciarSesion.mockRejectedValue({
+      response: { status: 401, data: { mensaje: 'Correo o contraseña incorrectos.' } },
+    })
 
-    await usuario.type(screen.getByLabelText('Correo electrónico'), 'ana@duoc.cl')
-    await usuario.type(screen.getByLabelText('Contraseña'), 'mala')
-    await usuario.click(screen.getByRole('button', { name: 'Entrar' }))
+    await escribirCredenciales(usuario, 'ana@duoc.cl', 'mala')
 
-    expect(screen.getByRole('alert')).toHaveTextContent('Correo o contraseña incorrectos.')
+    expect(await screen.findByRole('alert')).toHaveTextContent('Correo o contraseña incorrectos.')
   })
 
-  it('con credenciales correctas llama a onIniciarSesion con el usuario', async () => {
+  it('un cliente entra y vuelve al inicio', async () => {
     const usuario = userEvent.setup()
-    const alIniciar = vi.fn()
-    renderizar(alIniciar)
+    const auth = renderizar()
+    auth.iniciarSesion.mockResolvedValue(USUARIOS.cliente)
 
-    await usuario.type(screen.getByLabelText('Correo electrónico'), 'ana@duoc.cl')
-    await usuario.type(screen.getByLabelText('Contraseña'), '1234')
-    await usuario.click(screen.getByRole('button', { name: 'Entrar' }))
+    await escribirCredenciales(usuario, 'cliente@gmail.com', 'Cliente123!')
 
-    expect(alIniciar).toHaveBeenCalledTimes(1)
-    expect(alIniciar.mock.calls[0][0].nombre).toBe('Ana')
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(auth.iniciarSesion).toHaveBeenCalledWith('cliente@gmail.com', 'Cliente123!')
+    expect(await screen.findByText('inicio')).toBeInTheDocument()
+  })
+
+  it('admin y vendedor van directo al panel', async () => {
+    const usuario = userEvent.setup()
+    const auth = renderizar()
+    auth.iniciarSesion.mockResolvedValue(USUARIOS.vendedor)
+
+    await escribirCredenciales(usuario, 'vendedor@duoc.cl', 'Vendedor123!')
+
+    expect(await screen.findByText('panel')).toBeInTheDocument()
+  })
+
+  it('si venía de una ruta protegida vuelve a ella', async () => {
+    const usuario = userEvent.setup()
+    const auth = renderizar({ pathname: '/login', state: { desde: '/checkout' } })
+    auth.iniciarSesion.mockResolvedValue(USUARIOS.cliente)
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Inicia sesión para continuar.')
+    await escribirCredenciales(usuario, 'cliente@gmail.com', 'Cliente123!')
+
+    expect(await screen.findByText('checkout')).toBeInTheDocument()
   })
 })

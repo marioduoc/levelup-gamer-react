@@ -10,6 +10,7 @@ const CATAN = {
   nombre: 'Catan',
   precio: 29990,
   oferta: 0,
+  precioFinal: 29990,
   stock: 25,
   stockCritico: 5,
   imagen: '/img/JM001.jpg',
@@ -58,9 +59,18 @@ describe('TarjetaProducto', () => {
   })
 
   it('con oferta muestra el precio antiguo tachado y el nuevo', () => {
-    renderizar({ ...CATAN, oferta: 20 })
+    renderizar({ ...CATAN, oferta: 20, precioFinal: 23992 })
     expect(screen.getByText('-20%')).toBeInTheDocument()
     expect(screen.getByText('$29.990 CLP')).toHaveClass('price-old')
     expect(screen.getByText('$23.992 CLP')).toHaveClass('price')
+  })
+
+  it('sin onAgregar (ej: vendedor) no muestra el botón de compra', () => {
+    render(
+      <MemoryRouter>
+        <TarjetaProducto producto={CATAN} onAgregar={null} />
+      </MemoryRouter>,
+    )
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 })

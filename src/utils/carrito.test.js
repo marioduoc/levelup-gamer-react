@@ -13,9 +13,9 @@ import {
   CLAVE_CARRITO,
 } from './carrito.js'
 
-const CATAN = { codigo: 'JM001', nombre: 'Catan', precio: 29990, oferta: 0, stock: 2, imagen: '/img/JM001.jpg' }
-const MOUSE = { codigo: 'MS001', nombre: 'Mouse', precio: 49990, oferta: 0, stock: 30, imagen: '/img/MS001.jpg' }
-const CARCA = { codigo: 'JM002', nombre: 'Carcassonne', precio: 24990, oferta: 20, stock: 18, imagen: '/img/JM002.jpg' }
+const CATAN = { codigo: 'JM001', nombre: 'Catan', precio: 29990, oferta: 0, precioFinal: 29990, stock: 2, imagen: '/img/JM001.jpg' }
+const MOUSE = { codigo: 'MS001', nombre: 'Mouse', precio: 49990, oferta: 0, precioFinal: 49990, stock: 30, imagen: '/img/MS001.jpg' }
+const CARCA = { codigo: 'JM002', nombre: 'Carcassonne', precio: 24990, oferta: 20, precioFinal: 19992, stock: 18, imagen: '/img/JM002.jpg' }
 
 describe('agregarProducto', () => {
   it('agrega un producto nuevo con cantidad 1', () => {

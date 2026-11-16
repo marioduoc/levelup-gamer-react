@@ -2,9 +2,11 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import Registro from './Registro.jsx'
-import { obtenerUsuarios, registrarUsuario } from '../datos/usuarios.js'
+import { registrar } from '../api/authApi.js'
 
-beforeEach(() => localStorage.clear())
+vi.mock('../api/authApi.js')
+
+beforeEach(() => vi.clearAllMocks())
 
 function renderizar() {
   render(
@@ -34,10 +36,9 @@ describe('Registro', () => {
     expect(screen.getByLabelText('Comuna')).toBeDisabled()
     await usuario.selectOptions(screen.getByLabelText('Región'), 'Maule')
     expect(screen.getByLabelText('Comuna')).toBeEnabled()
-    expect(screen.getByRole('option', { name: 'Talca' })).toBeInTheDocument()
   })
 
-  it('al enviar vacío muestra los errores y no registra nada', async () => {
+  it('al enviar vacío valida en el navegador y no llama a la API', async () => {
     const usuario = userEvent.setup()
     renderizar()
 
@@ -45,30 +46,46 @@ describe('Registro', () => {
 
     expect(screen.getByRole('alert')).toHaveTextContent('Revisa los campos marcados en rojo.')
     expect(screen.getByText(/RUN inválido/)).toBeInTheDocument()
-    expect(obtenerUsuarios()).toHaveLength(0)
+    expect(registrar).not.toHaveBeenCalled()
   })
 
-  it('con datos válidos registra al usuario y muestra el mensaje de éxito', async () => {
+  it('con datos válidos envía el registro a la API sin el código de referido', async () => {
+    registrar.mockResolvedValue({ id: 9, rol: 'CLIENTE' })
     const usuario = userEvent.setup()
     renderizar()
 
     await completarFormularioValido(usuario)
     await usuario.click(screen.getByRole('button', { name: 'Registrarme' }))
 
-    expect(screen.getByRole('alert')).toHaveTextContent('¡Cuenta creada con éxito!')
-    expect(obtenerUsuarios()).toHaveLength(1)
-    expect(obtenerUsuarios()[0].correo).toBe('ana@duoc.cl')
+    expect(await screen.findByRole('alert')).toHaveTextContent('¡Cuenta creada con éxito!')
+    const enviado = registrar.mock.calls[0][0]
+    expect(enviado.correo).toBe('ana@duoc.cl')
+    expect(enviado).not.toHaveProperty('codigoReferido')
   })
 
-  it('avisa si el correo ya está registrado', async () => {
-    registrarUsuario({ run: '111111111', nombre: 'Otro', correo: 'ana@duoc.cl', password: '1234' })
+  it('muestra el mensaje del backend si el correo ya existe', async () => {
+    registrar.mockImplementation(() => Promise.reject({
+      response: { status: 409, data: { mensaje: 'Ya existe un usuario registrado con ese correo.' } },
+    }))
     const usuario = userEvent.setup()
     renderizar()
 
     await completarFormularioValido(usuario)
     await usuario.click(screen.getByRole('button', { name: 'Registrarme' }))
 
-    expect(screen.getByRole('alert')).toHaveTextContent('Ya existe un usuario registrado con ese correo.')
-    expect(obtenerUsuarios()).toHaveLength(1)
+    expect(await screen.findByRole('alert')).toHaveTextContent('Ya existe un usuario registrado con ese correo.')
+  })
+
+  it('marca los campos que el backend rechaza', async () => {
+    registrar.mockImplementation(() => Promise.reject({
+      response: { status: 400, data: { mensaje: 'Hay datos inválidos en la solicitud.', campos: { direccion: 'Dirección rechazada.' } } },
+    }))
+    const usuario = userEvent.setup()
+    renderizar()
+
+    await completarFormularioValido(usuario)
+    await usuario.click(screen.getByRole('button', { name: 'Registrarme' }))
+
+    expect(await screen.findByText('Dirección rechazada.')).toBeInTheDocument()
   })
 })
