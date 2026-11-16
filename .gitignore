@@ -25,3 +25,5 @@ dist-ssr
 
 # cobertura de pruebas (se regenera en cada ejecucion)
 coverage
+
+*.md
